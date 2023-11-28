@@ -7,6 +7,7 @@ const URL_LOGIN = 'https://cloud.ovdimnet.com/register/user-login.tcl';
 const axiosInstance = axios.create({
     withCredentials: true
 });
+
 wrapper(axiosInstance);
 
 const cookieJar = new CookieJar();
@@ -27,7 +28,7 @@ const extractValueFromHtml = async (response, selector) => {
 
 const logInAndGetToken = async (email, password) => {
     try {
-        const initialData = { email: '13', password: '12', image1: 'login', sec_session_id: "secSessionId", return_url: '' };
+        const initialData = { email: '', password: '' };
         const firstResponse = await postFormData(URL_LOGIN, initialData);
         const secSessionId = await extractValueFromHtml(firstResponse, "#sec_session_id");
 

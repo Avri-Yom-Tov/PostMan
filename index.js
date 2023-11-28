@@ -21,21 +21,8 @@ const getSessionIdInput = async (date) => {
   try {
     const response = await fetch("https://cloud.ovdimnet.com/ws-daily.adp", {
       headers: {
-        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-        "accept-language": "he-IL,he;q=0.9,en-US;q=0.8,en;q=0.7",
-        "cache-control": "max-age=0",
         "content-type": "application/x-www-form-urlencoded",
-        "sec-ch-ua": "\"Google Chrome\";v=\"119\", \"Chromium\";v=\"119\", \"Not?A_Brand\";v=\"24\"",
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": "\"Windows\"",
-        "sec-fetch-dest": "document",
-        "sec-fetch-mode": "navigate",
-        "sec-fetch-site": "same-origin",
-        "sec-fetch-user": "?1",
-        "upgrade-insecure-requests": "1",
         "cookie": `ad_session_id=${process.env.AD_SESSION_ID}`,
-        "Referer": "https://cloud.ovdimnet.com/",
-        "Referrer-Policy": "strict-origin"
       },
       method: "POST",
       body: new URLSearchParams(params).toString()
@@ -105,27 +92,7 @@ const setWorkDayHours = async (session_id, sec_session_id, firstOptionLids, date
     maxBodyLength: Infinity,
     url: 'https://cloud.ovdimnet.com/ws-daily.adp',
     headers: {
-      'authority': 'cloud.ovdimnet.com',
-      'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-      'accept-language': 'he-IL,he;q=0.9,en-US;q=0.8,en;q=0.7',
-      'cache-control': 'max-age=0',
-      'content-type': 'application/x-www-form-urlencoded',
       "cookie": `ad_session_id=${process.env.AD_SESSION_ID}`,
-      'origin': 'https://cloud.ovdimnet.com',
-      'referer': 'https://cloud.ovdimnet.com/',
-      'sec-ch-ua': '"Google Chrome";v="119", "Chromium";v="119", "Not?A_Brand";v="24"',
-      'sec-ch-ua-mobile': '?0',
-      'sec-ch-ua-platform': '"Windows"',
-      'sec-fetch-dest': 'document',
-      'sec-fetch-mode': 'navigate',
-      'sec-fetch-site': 'same-origin',
-      'sec-fetch-user': '?1',
-      'upgrade-insecure-requests': '1',
-      'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
-      'Referer': 'https://cloud.ovdimnet.com/',
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
-      'If-None-Match': '"i5e0SEnvZaYdEQQMhLfcZeHwqe4="',
-      'If-Modified-Since': 'Wed, 17 Feb 2021 05:52:18 GMT'
     },
     data: data
   };
@@ -139,7 +106,6 @@ const setWorkDayHours = async (session_id, sec_session_id, firstOptionLids, date
       return `Successfully update time for date : ${date} !`;
     }
     return 'Error';
-    // const dom = new JSDOM(response.data);
 
   } catch (error) {
     console.log('Error:', error);
