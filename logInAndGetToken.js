@@ -3,6 +3,8 @@ const { CookieJar } = require('tough-cookie');
 const { wrapper } = require('axios-cookiejar-support');
 const { JSDOM } = require('jsdom');
 const URL_LOGIN = 'https://cloud.ovdimnet.com/register/user-login.tcl';
+const dotenv = require('dotenv');
+dotenv.config();
 
 const axiosInstance = axios.create({
     withCredentials: true
@@ -26,7 +28,7 @@ const extractValueFromHtml = async (response, selector) => {
     return dom.window.document.querySelector(selector).value;
 }
 
-const logInAndGetToken = async (email, password) => {
+const logInAndGetToken = async () => {
     try {
         const initialData = { email: '', password: '' };
         const firstResponse = await postFormData(URL_LOGIN, initialData);
@@ -34,8 +36,8 @@ const logInAndGetToken = async (email, password) => {
 
         const loginData = {
             sec_session_id: secSessionId,
-            email: email,
-            password: password,
+            email: process.env.EMAIL,
+            password: process.env.PASSWORD,
             image1: 'login',
             return_url: ''
         };

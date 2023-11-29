@@ -3,10 +3,31 @@
 const axios = require('axios');
 const qs = require('qs');
 const { JSDOM } = require('jsdom');
-const fs = require('fs');
 const Holidays = require('date-holidays');
 const logInAndGetToken = require('./logInAndGetToken')
 const readline = require('readline');
+
+
+
+
+// Main ..
+(async () => {
+  try {
+
+    const daysToUpdate = await getUserInput();
+    process.env.AD_SESSION_ID = await logInAndGetToken();
+
+    for (const date of daysToUpdate) {
+      const { session_id, sec_session_id, firstOptionLids } = await getSessionIdInput(date);
+      await setWorkDayHours(session_id, sec_session_id, firstOptionLids, date);
+    }
+    console.log(`The selected days were updated and saved in the time system ..`);
+
+  } catch (error) {
+    console.error('Error:', error);
+  }
+})();
+
 
 
 
@@ -50,10 +71,6 @@ const getSessionIdInput = async (date) => {
   }
 };
 
-
-
-
-
 const setWorkDayHours = async (session_id, sec_session_id, firstOptionLids, date) => {
 
   const data = qs.stringify({
@@ -63,9 +80,9 @@ const setWorkDayHours = async (session_id, sec_session_id, firstOptionLids, date
     'unique_1': '',
     'job_atype_1': '',
     'jid_1': `${firstOptionLids || '17392'} `,
-    'time_start_HH_1': '09',
+    'time_start_HH_1': process.env.TIME_START_H || '09',
     'time_start_MM_1': '00',
-    'time_end_HH_1': '17',
+    'time_end_HH_1': process.env.TIME_END_H || '17',
     'time_end_MM_1': '00',
     'work_hours_1': '',
     'units_1': '',
@@ -97,15 +114,8 @@ const setWorkDayHours = async (session_id, sec_session_id, firstOptionLids, date
     data: data
   };
 
-
-
   try {
-    const response = await axios.request(config);
-    if (response.status) {
-
-      return `Successfully update time for date : ${date} !`;
-    }
-    return 'Error';
+    await axios.request(config);
 
   } catch (error) {
     console.log('Error:', error);
@@ -113,28 +123,31 @@ const setWorkDayHours = async (session_id, sec_session_id, firstOptionLids, date
   }
 };
 
-const getRemainingDays = () => {
+const getDaysOfMonth = (allDays = false) => {
   const today = new Date();
   const year = today.getFullYear();
   const month = today.getMonth();
   const lastDayOfMonth = new Date(year, month + 1, 0);
   const nonExcludedHolidays = filterHolidays(year);
 
-  const remainingDays = [];
+  const days = [];
+  const startDay = allDays ? 1 : today.getDate();
 
-  for (let day = today.getDate(); day <= lastDayOfMonth.getDate(); day++) {
+  for (let day = startDay; day <= lastDayOfMonth.getDate(); day++) {
     const currentDate = new Date(year, month, day);
 
     const isWeekend = currentDate.getDay() === 5 || currentDate.getDay() === 6;
-    const isHoliday = nonExcludedHolidays.some(holiday => currentDate >= holiday.start && currentDate <= holiday.end);
+    const isHoliday = nonExcludedHolidays.some(
+      holiday => currentDate >= holiday.start && currentDate <= holiday.end
+    );
 
     if (!isWeekend && !isHoliday) {
-      let formattedDate = `${('0' + currentDate.getDate()).slice(-2)}/${('0' + (currentDate.getMonth() + 1)).slice(-2)}/${currentDate.getFullYear()}`;
-      remainingDays.push(formattedDate);
+      let formattedDate = `${currentDate.getDate().toString().padStart(2, '0')}/${(currentDate.getMonth() + 1).toString().padStart(2, '0')}/${currentDate.getFullYear()}`;
+      days.push(formattedDate);
     }
   }
 
-  return remainingDays;
+  return days;
 };
 
 const filterHolidays = (year) => {
@@ -149,10 +162,29 @@ const filterHolidays = (year) => {
     }));
 };
 
+const printMsg = () => {
+  const colorReset = '\x1b[0m';
+  const bold = '\x1b[1m';
+  const green = '\x1b[32m';
+  const red = '\x1b[31m';
 
+  const welcomeMessage = `${bold}Hello and welcome to the update your working hours for this month at Ravtech:${colorReset}`;
+  const option1 = `${green}To update all the remaining days from 9 AM to 5 PM, excluding Weekends or Holidays or days that already set, press ${bold}1${colorReset}${green}.${colorReset}`;
+  const option2 = `${green}To update all days from 9 AM to 5 PM, excluding Weekends or Holidays days that already set, press ${bold}2${colorReset}${green}.${colorReset}`;
+  const option3 = `${green}To update a certain date, type the date in the following format ('DD/MM') then press enter.${colorReset}`;
+  const option4 = `${red}To exit, press ${bold}0${colorReset}${red}.${colorReset}`;
 
-// Function to handle user input
-async function getUserInput() {
+  const finalMessage = `${welcomeMessage}
+    - ${option1}
+    - ${option2}
+    - ${option3}
+    ${option4}`;
+
+  console.log(finalMessage);
+
+}
+
+const getUserInput = async () => {
   return new Promise((resolve) => {
     let remainingDays = [];
 
@@ -161,24 +193,30 @@ async function getUserInput() {
       output: process.stdout
     });
 
-    console.log(`Hello and welcome to the update of your working hours at Ravtech:
-    To update all days this month from 9 am to 5 pm, excluding weekends or holidays, press 1.
-    To update a certain date, type the date in the following format (for example '12/29/2023') and press enter, to exit press 0`);
+    console.clear();
+    printMsg();
+
 
     rl.on('line', (input) => {
       if (input === '1') {
-        console.log('Updating all working days...');
-        remainingDays = getRemainingDays();
+        console.log('Updating remaining days for this month ...');
+        remainingDays = getDaysOfMonth();
         rl.close();
-      } else if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(input)) {
-        remainingDays.push(input);
-        console.log(`Updating date: ${input}`);
+      }
+      else if (input === '2') {
+        console.log('Updating all days for this month ...');
+        remainingDays = getDaysOfMonth(true);
+        rl.close();
+      } else if (/^(0\d|[12]\d|3[01])\/(0\d|1[0-2])$/.test(input)) {
+        const date = input + `/${new Date().getFullYear()}`;
+        remainingDays.push(date);
+        console.log(`Updating date: ${date}`);
         rl.close();
       } else if (input === '0') {
         console.log('Exiting...');
         rl.close();
       } else {
-        console.log('Invalid input, please try again.');
+        console.log('Invalid input, please try again ..');
       }
     });
 
@@ -187,102 +225,3 @@ async function getUserInput() {
     });
   });
 }
-
-// Main async function
-(async () => {
-  try {
-    const remainingDays = await getUserInput();
-
-    process.env.AD_SESSION_ID = await logInAndGetToken('208793117', 'KSyDujcEu1');
-    const results = [];
-
-    for (const date of remainingDays) {
-      const { session_id, sec_session_id, firstOptionLids } = await getSessionIdInput(date);
-      const result = await setWorkDayHours(session_id, sec_session_id, firstOptionLids, date);
-      results.push(result);
-    }
-
-    console.log(results);
-  } catch (error) {
-    console.error('Error:', error);
-  }
-})();
-
-
-const saveUserData = (data, filename) => {
-  const jsonData = JSON.stringify(data);
-  fs.writeFileSync(filename, jsonData, 'utf8');
-}
-
-
-// jid_1': '17392', Nice Developer
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-const generateDataObject = () => {
-  const currentDate = new Date();
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth() + 1; // getMonth() is zero-based
-  const daysInMonth = new Date(year, month, 0).getDate();
-
-  let dataObject = {
-    session_id: '1700681308114562', // assuming static
-    sec_session_id: 'jwTZ/Vcoh134SsiFJwPlaWaCdg5rT1dT', // assuming static
-    filter_pp: month,
-    filter_pp_year: year
-  };
-
-  for (let day = 0; day <= daysInMonth; day++) {
-    const dateFormatted = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    dataObject[`day_${day}`] = dateFormatted;
-    dataObject[`assignment_name_${day}`] = ''; // Nice |Developer
-    dataObject[`jid_${day}`] = ''; // 17392
-    dataObject[`job_atype_${day}`] = ''; // day in atype
-    dataObject[`std_${day}`] = '28800'; // empty in 5 and 6 days  ? ..
-    dataObject[`time_end_HH_${day}`] = '';
-    dataObject[`time_end_MM_${day}`] = '';
-    dataObject[`time_start_HH_${day}`] = '';
-    dataObject[`time_start_MM_${day}`] = '';
-    dataObject[`unique_${day}`] = '??';
-    dataObject[`units_${day}`] = ''
-    dataObject[`work_comments_${day}_1`] = '';
-    dataObject[`work_hours_${day}`] = '';
-    // other dynamic fields...
-  }
-
-  return dataObject;
-};
-
-
-
-
-
