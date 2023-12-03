@@ -9,28 +9,6 @@ const readline = require('readline');
 
 
 
-
-// Main ..
-(async () => {
-  try {
-
-    const daysToUpdate = await getUserInput();
-    process.env.AD_SESSION_ID = await logInAndGetToken();
-
-    for (const date of daysToUpdate) {
-      const { session_id, sec_session_id, firstOptionLids } = await getSessionIdInput(date);
-      await setWorkDayHours(session_id, sec_session_id, firstOptionLids, date);
-    }
-    console.log(`The selected days were updated and saved in the time system ..`);
-
-  } catch (error) {
-    console.error('Error:', error);
-  }
-})();
-
-
-
-
 const getSessionIdInput = async (date) => {
   const params = {
     filter_day: date,
@@ -225,3 +203,23 @@ const getUserInput = async () => {
     });
   });
 }
+
+
+
+// Main ..
+(async () => {
+  try {
+
+    const daysToUpdate = await getUserInput();
+    process.env.AD_SESSION_ID = await logInAndGetToken();
+
+    for (const date of daysToUpdate) {
+      const { session_id, sec_session_id, firstOptionLids } = await getSessionIdInput(date);
+      await setWorkDayHours(session_id, sec_session_id, firstOptionLids, date);
+    }
+    console.log(`The selected days were updated and saved in the time system ..`);
+
+  } catch (error) {
+    console.error('Error:', error);
+  }
+})();
