@@ -4,10 +4,8 @@
   "description": "",
   "main": "deactivateUsers.js",
   "scripts": {
-    "start": "node index.js",
-    "run": "node try.js"
+    "start": "node index.js"
   },
-  "author": "",
   "license": "ISC",
   "dependencies": {
     "@hebcal/core": "^4.5.1",
@@ -18,6 +16,7 @@
     "jewish-dates-core": "^2.0.12",
     "js-beautify": "^1.14.11",
     "jsdom": "^22.1.0",
+    "qs": "^6.11.2",
     "readline": "^1.3.0",
     "tough-cookie": "^4.1.3"
   }

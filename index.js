@@ -146,7 +146,7 @@ const printMsg = () => {
   const green = '\x1b[32m';
   const red = '\x1b[31m';
 
-  const welcomeMessage = `${bold}Hello and welcome to the update your working hours for this month at Ravtech:${colorReset}`;
+  const welcomeMessage = `${bold}Hello and welcome to the update your working hours for this month at Ravtech :${colorReset}`;
   const option1 = `${green}To update all the remaining days from 9 AM to 5 PM, excluding Weekends or Holidays or days that already set, press ${bold}1${colorReset}${green}.${colorReset}`;
   const option2 = `${green}To update all days from 9 AM to 5 PM, excluding Weekends or Holidays days that already set, press ${bold}2${colorReset}${green}.${colorReset}`;
   const option3 = `${green}To update a certain date, type the date in the following format ('DD/MM') then press enter.${colorReset}`;
@@ -209,7 +209,7 @@ const getUserInput = async () => {
 // Main ..
 (async () => {
   try {
-
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
     const daysToUpdate = await getUserInput();
     process.env.AD_SESSION_ID = await logInAndGetToken();
 
